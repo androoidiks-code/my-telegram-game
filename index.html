@@ -6,74 +6,101 @@
     <title>Star Bird: Lucky Spin 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main-yellow: #fcd34d; --bg-sky: #0ea5e9; --accent-blue: #3b82f6; --danger: #f43f5e; }
-        body { font-family: 'Segoe UI', sans-serif; background: #020617; color: white; text-align: center; margin: 0; padding: 10px; overflow: hidden; touch-action: manipulation; }
+        :root { --main-yellow: #fcd34d; --bg-sky: #0ea5e9; --accent-blue: #3b82f6; --danger: #f43f5e; --glass: rgba(255,255,255,0.1); }
+        body { font-family: 'Segoe UI', system-ui; background: #020617; color: white; text-align: center; margin: 0; padding: 10px; overflow: hidden; touch-action: manipulation; user-select: none; }
         
-        /* Панель прогресса вывода */
-        .withdraw-panel { background: var(--accent-blue); border-radius: 15px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2); }
-        .progress-container { background: rgba(0,0,0,0.3); height: 10px; border-radius: 10px; margin-top: 8px; overflow: hidden; }
-        #progressBar { background: linear-gradient(90deg, #f59e0b, #fcd34d); width: 0%; height: 100%; transition: 0.5s; }
+        /* Верхняя панель */
+        .header-ui { background: var(--accent-blue); border-radius: 15px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2); position: relative; }
+        .progress-container { background: rgba(0,0,0,0.3); height: 8px; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+        #progressBar { background: linear-gradient(90deg, #f59e0b, #fcd34d); width: 0%; height: 100%; transition: 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
 
-        /* Карточка баланса */
-        .wallet-card { background: #1e293b; border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-around; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .balance-value { font-size: 24px; color: var(--main-yellow); font-weight: bold; }
+        /* Кошелек */
+        .wallet-card { background: #1e293b; border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-around; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 1px solid var(--glass); }
+        .balance-value { font-size: 22px; color: var(--main-yellow); font-weight: 900; }
 
-        /* Игровая сцена */
+        /* Игровая зона */
         #game-scene { 
-            position: relative; width: 100%; height: 260px; 
+            position: relative; width: 100%; height: 280px; 
             background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%); 
-            border-radius: 24px; overflow: hidden; margin-bottom: 10px; border: 3px solid #1e293b;
+            border-radius: 24px; overflow: hidden; margin-bottom: 10px; border: 4px solid #1e293b;
         }
-        #bird-container { position: absolute; left: 40px; top: 50%; transform: translateY(-50%); z-index: 15; transition: top 0.3s; }
-        #bird { font-size: 55px; transform: scaleX(-1); }
-        
-        /* Кнопки управления */
+
+        /* Облака */
+        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.6; animation: moveCloud linear infinite; }
+        @keyframes moveCloud { from { right: -100px; } to { right: 110%; } }
+
+        /* Птица */
+        #bird-container { position: absolute; left: 50px; top: 50%; transform: translateY(-50%); z-index: 100; transition: top 0.4s ease-out; }
+        #bird { font-size: 50px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); display: inline-block; }
+        .bird-fly { animation: flap 0.4s infinite alternate; }
+        @keyframes flap { from { transform: rotate(-5deg) scaleX(-1); } to { transform: rotate(10deg) scaleX(-1); } }
+
+        /* Коэффициент над птицей */
+        #float-multi { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-weight: bold; color: var(--main-yellow); font-size: 18px; display: none; text-shadow: 0 2px 4px black; }
+
+        /* Кнопки */
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn { padding: 12px 5px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; color: white; font-size: 11px; transition: 0.2s; }
-        .btn:active { transform: translateY(2px); }
-        
+        .btn { padding: 12px 5px; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; color: white; font-size: 10px; transition: 0.2s; position: relative; overflow: hidden; border-bottom: 4px solid rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
+
         .btn-free { background: #8b5cf6; grid-column: span 2; font-size: 13px; }
         .btn-std { background: #10b981; }
         .btn-super { background: #f59e0b; }
         .btn-turbo { background: #3b82f6; }
-        .btn-energy { background: var(--danger); grid-column: span 2; font-size: 14px; margin-top: 5px; }
+        .btn-energy { background: var(--danger); grid-column: span 2; font-size: 13px; }
         .btn-soon { background: #334155; color: #94a3b8; }
+        .btn-take { background: var(--main-yellow); color: #000; grid-column: span 2; display: none; font-size: 22px; padding: 16px; animation: pulse 1s infinite; }
         
-        .btn-take { background: var(--main-yellow); color: #000; grid-column: span 2; display: none; font-size: 22px; font-weight: 900; padding: 15px; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* Статистика */
+        .stats-row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: #94a3b8; padding: 0 5px; }
+        .history { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 8px; margin-top: 5px; font-size: 10px; height: 40px; overflow-y: auto; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div class="withdraw-panel">
-        <div style="display: flex; justify-content: space-around; font-size: 11px; font-weight: bold;">
-            <span>ПРОГРЕСС ВЫВОДА: <span id="with-val">0</span>%</span>
-            <span>ДРУЗЬЯ: <span id="ref-val">0</span>/5</span>
+    <div class="header-ui">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 900;">
+            <span>ВЫВОД (ОТ 1000 ⭐)</span>
+            <span id="ref-status">ДРУЗЬЯ: 0/5</span>
         </div>
         <div class="progress-container"><div id="progressBar"></div></div>
+        <button onclick="requestWithdraw()" style="margin-top: 5px; background: none; border: 1px solid white; color: white; border-radius: 5px; font-size: 9px; padding: 2px 10px;">ВЫВЕСТИ</button>
     </div>
 
     <div class="wallet-card">
-        <div><small style="color: #94a3b8;">БАЛАНС</small><div class="balance-value"><span id="balanceDisplay">0</span> ⭐</div></div>
+        <div><small style="color: #94a3b8;">МОЙ БАЛАНС</small><div class="balance-value"><span id="balanceDisplay">0</span> ⭐</div></div>
         <div><small style="color: #94a3b8;">В ПОЛЕТЕ</small><div class="balance-value" style="color:white"><span id="currentWin">0</span> ⭐</div></div>
     </div>
 
     <div id="game-scene">
-        <div id="bird-container"><div id="bird">🐦‍⬛</div></div>
+        <div id="bird-container">
+            <div id="float-multi">x1.00</div>
+            <div id="bird" class="bird-fly">🐦‍⬛</div>
+        </div>
     </div>
 
     <div class="controls" id="mainControls">
-        <button class="btn btn-free" onclick="handleFlightAttempt(0)">БЕСПЛАТНЫЙ ПОЛЕТ</button>
+        <button id="btn-free" class="btn btn-free" onclick="handleFlightAttempt(0, 'free')">БЕСПЛАТНЫЙ ПОЛЕТ <br><small id="timer-free"></small></button>
         <button class="btn btn-std" onclick="handleFlightAttempt(50, 'spin')">СПИН (50 ⭐)</button>
         <button class="btn btn-super" onclick="handleFlightAttempt(150, 'super_spin')">СУПЕР СПИН (150 ⭐)</button>
         <button class="btn btn-turbo" onclick="handleFlightAttempt(300, 'turbo_spin')">ТУРБО СПИН (300 ⭐)</button>
-        <button class="btn btn-energy" onclick="triggerPayment('energy')">⚡ КУПИТЬ ЭНЕРГИЮ (25 ⭐)</button>
+        <button class="btn btn-energy" onclick="triggerPayment('energy')">⚡ ЭНЕРГИЯ (25 ⭐) — СБРОС ТАЙМЕРА</button>
 
-        <button class="btn btn-soon">ЛИГА</button>
-        <button class="btn btn-soon">МАГАЗИН</button>
-        <button class="btn btn-soon" style="grid-column: span 2;" onclick="openInvite()">👥 ПРИГЛАСИТЬ ДРУЗЕЙ</button>
+        <button class="btn btn-soon">ЛИГА (СКОРО)</button>
+        <button class="btn btn-soon">МАГАЗИН (СКОРО)</button>
+        <button class="btn btn-soon" style="grid-column: span 2;" onclick="inviteFriends()">👥 ПРИГЛАСИТЬ ДРУЗЕЙ (+1 ПОЛЕТ)</button>
     </div>
     
-    <button id="takeBtn" class="btn btn-take" onclick="takeWin()">ЗАБРАТЬ ⭐</button>
+    <button id="takeBtn" class="btn btn-take" onclick="takeWin()">ЗАБРАТЬ <span id="btnWinVal">0</span> ⭐</button>
+
+    <div class="stats-row">
+        <span>ИСТОРИЯ:</span>
+        <span>ТОП ИГРОК: @User_Lucky (5400 ⭐)</span>
+    </div>
+    <div class="history" id="historyLog"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -82,20 +109,35 @@
         const API_URL = "http://85.198.96.191:8080";
         const PROXY = "https://api.allorigins.win/get?url=";
         let userId = tg.initDataUnsafe.user?.id || 12345;
-        let balance = 0, flightTotal = 0, isPlaying = false;
+        let balance = 0, flightTotal = 0, isPlaying = false, refCount = 0;
+        let lastFreeTime = localStorage.getItem('lastFreeTime') || 0;
 
-        // Связь с твоим сервером через прокси
+        // Звуковые эффекты (заглушки)
+        const playSound = (type) => { 
+            const freq = { win: 800, crash: 150, collect: 1200 };
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.frequency.setValueAtTime(freq[type] || 440, ctx.currentTime);
+            osc.connect(g); g.connect(ctx.destination);
+            osc.start(); g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.1);
+            osc.stop(ctx.currentTime + 0.1);
+        };
+
         async function callServer(endpoint, params) {
             const target = `${API_URL}/${endpoint}?${params}&t=${Date.now()}`;
-            const res = await fetch(PROXY + encodeURIComponent(target));
-            const data = await res.json();
-            return JSON.parse(data.contents);
+            try {
+                const res = await fetch(PROXY + encodeURIComponent(target));
+                const data = await res.json();
+                return JSON.parse(data.contents);
+            } catch (e) { throw e; }
         }
 
         async function sync() {
             try {
                 const data = await callServer('get_user', `user_id=${userId}`);
                 balance = data.balance || 0;
+                refCount = data.ref_count || 0;
                 updateUI();
             } catch (e) {
                 balance = parseInt(localStorage.getItem('bird_bal')) || 0;
@@ -103,62 +145,95 @@
             }
         }
 
+        function updateUI() {
+            document.getElementById('balanceDisplay').innerText = balance;
+            document.getElementById('currentWin').innerText = flightTotal;
+            document.getElementById('btnWinVal').innerText = flightTotal;
+            document.getElementById('ref-status').innerText = `ДРУЗЬЯ: ${refCount}/5`;
+            let p = Math.min((balance/1000)*100, 100);
+            document.getElementById('progressBar').style.width = p + '%';
+            checkFreeTimer();
+        }
+
+        function checkFreeTimer() {
+            const now = Date.now();
+            const diff = now - lastFreeTime;
+            const cooldown = 8 * 60 * 60 * 1000;
+            const btn = document.getElementById('btn-free');
+            const timerLabel = document.getElementById('timer-free');
+
+            if (diff < cooldown) {
+                btn.disabled = true;
+                const rem = cooldown - diff;
+                const h = Math.floor(rem / 3600000);
+                const m = Math.floor((rem % 3600000) / 60000);
+                timerLabel.innerText = `(${h}ч ${m}м)`;
+            } else {
+                btn.disabled = false;
+                timerLabel.innerText = "(ДОСТУПНО)";
+            }
+        }
+
         async function triggerPayment(type) {
             try {
-                tg.MainButton.setText("ОЖИДАНИЕ СЧЕТА...");
-                tg.MainButton.show();
-                
                 const data = await callServer('pay', `user_id=${userId}&type=${type}`);
-                tg.MainButton.hide();
-
                 if (data.link) {
                     tg.openInvoice(data.link, (status) => {
                         if (status === 'paid') {
-                            tg.showAlert("✅ Успешно куплено!");
+                            if(type === 'energy') {
+                                lastFreeTime = 0;
+                                localStorage.removeItem('lastFreeTime');
+                                tg.showAlert("⚡ Энергия восстановлена!");
+                            } else {
+                                tg.showAlert("✅ Звезды зачислены!");
+                            }
                             sync();
                         }
                     });
                 }
-            } catch (e) {
-                tg.showAlert("Ошибка связи с сервером.");
-                tg.MainButton.hide();
-            }
-        }
-
-        function updateUI() {
-            document.getElementById('balanceDisplay').innerText = balance;
-            document.getElementById('currentWin').innerText = flightTotal;
-            let p = Math.min((balance/1000)*100, 100);
-            document.getElementById('progressBar').style.width = p + '%';
-            document.getElementById('with-val').innerText = Math.floor(p);
-            localStorage.setItem('bird_bal', balance);
+            } catch (e) { tg.showAlert("Ошибка оплаты"); }
         }
 
         function handleFlightAttempt(cost, type) {
-            if (cost > balance && cost !== 0) {
-                tg.showConfirm(`Недостаточно звезд. Купить ${cost} ⭐?`, (ok) => {
-                    if(ok) triggerPayment(type);
-                });
+            if (cost === 0) {
+                lastFreeTime = Date.now();
+                localStorage.setItem('lastFreeTime', lastFreeTime);
+                startFlight(0);
                 return;
             }
-            startFlight(cost);
+            // Если баланса хватает — списываем с него
+            if (balance >= cost) {
+                balance -= cost;
+                startFlight(cost);
+            } else {
+                tg.showConfirm(`Недостаточно на балансе. Купить ${cost} ⭐?`, (ok) => {
+                    if(ok) triggerPayment(type);
+                });
+            }
         }
 
         function startFlight(cost) {
-            isPlaying = true; balance -= cost; flightTotal = 0;
+            isPlaying = true; flightTotal = 0;
             document.getElementById('mainControls').style.display = 'none';
             document.getElementById('takeBtn').style.display = 'block';
+            document.getElementById('float-multi').style.display = 'block';
             updateUI();
             
+            let multi = 1.0;
             let gameTimer = setInterval(() => {
-                if (Math.random() < 0.1) { // 10% шанс падения
+                if (Math.random() < 0.12) { // Краш
                     clearInterval(gameTimer);
                     endGame(false);
                 } else {
-                    flightTotal += (cost === 0 ? 2 : Math.floor(cost * 0.15));
+                    multi += 0.05;
+                    flightTotal += (cost === 0 ? 3 : Math.floor(cost * 0.1 * multi));
                     document.getElementById('currentWin').innerText = flightTotal;
+                    document.getElementById('btnWinVal').innerText = flightTotal;
+                    document.getElementById('float-multi').innerText = `x${multi.toFixed(2)}`;
+                    document.getElementById('bird-container').style.top = (40 + Math.random() * 20) + '%';
+                    playSound('collect');
                 }
-            }, 800);
+            }, 900);
         }
 
         function takeWin() { balance += flightTotal; endGame(true); }
@@ -167,16 +242,56 @@
             isPlaying = false;
             document.getElementById('mainControls').style.display = 'grid';
             document.getElementById('takeBtn').style.display = 'none';
+            document.getElementById('float-multi').style.display = 'none';
+            
+            const log = document.getElementById('historyLog');
+            const entry = document.createElement('div');
+            entry.innerText = win ? `✅ Забрал ${flightTotal} ⭐` : `💥 Краш! Потеряно ${flightTotal} ⭐`;
+            entry.style.color = win ? "#10b981" : "#f43f5e";
+            log.prepend(entry);
+
+            if(!win) {
+                playSound('crash');
+                tg.HapticFeedback.notificationOccurred('error');
+            } else {
+                playSound('win');
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+            
             flightTotal = 0;
             updateUI();
-            if(!win) tg.showAlert("ПТИЦА УПАЛА! ⭐");
         }
 
-        function openInvite() {
+        function inviteFriends() {
             const link = `https://t.me/Luckyspin2026_bot?start=${userId}`;
-            tg.showPopup({ title: 'Друзья', message: `Твоя ссылка:\n${link}`, buttons: [{text: 'КОПИРОВАТЬ'}] });
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Полетели со мной в Star Bird! 🐦‍⬛")}`);
         }
 
+        function requestWithdraw() {
+            if (balance < 1000 || refCount < 5) {
+                tg.showAlert(`Условия вывода:\n1. Минимум 1000 ⭐ (У тебя ${balance})\n2. Пригласить 5 друзей (У тебя ${refCount})`);
+            } else {
+                tg.showAlert("Заявка отправлена! Администратор проверит баланс и свяжется с вами.");
+                // Тут можно вызвать callServer('request_withdraw', ...)
+            }
+        }
+
+        // Облака
+        function spawnClouds() {
+            const scene = document.getElementById('game-scene');
+            for(let i=0; i<5; i++) {
+                const c = document.createElement('div');
+                c.className = 'cloud';
+                c.style.width = (30 + Math.random()*50) + 'px';
+                c.style.height = '15px';
+                c.style.top = (Math.random()*200) + 'px';
+                c.style.animationDuration = (3 + Math.random()*5) + 's';
+                c.style.animationDelay = (Math.random()*5) + 's';
+                scene.appendChild(c);
+            }
+        }
+
+        spawnClouds();
         sync();
     </script>
 </body>
