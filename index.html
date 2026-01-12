@@ -95,7 +95,7 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // --- НАСТРОЙКИ СЕРВЕРА (ТВОЙ IP) ---
+        // --- НАСТРОЙКИ СЕРВЕРА ---
         const API_URL = "http://85.198.96.191:8080"; 
 
         let userId = tg.initDataUnsafe.user?.id || 12345;
@@ -110,13 +110,13 @@
             try {
                 const res = await fetch(`${API_URL}/get_user?user_id=${userId}`);
                 const data = await res.json();
-                balance = data.balance;
-                refCount = data.ref_count;
+                balance = data.balance || 0;
+                refCount = data.ref_count || 0;
                 updateUI(false);
             } catch (e) {
                 console.error("Ошибка синхронизации");
                 balance = parseInt(localStorage.getItem('birdBalance')) || 100;
-                updateUI();
+                updateUI(false);
             }
         }
 
@@ -173,6 +173,7 @@
 
         async function triggerExternalPayment(amount) {
             try {
+                // ИСПРАВЛЕНО: Добавлен путь /pay
                 const res = await fetch(`${API_URL}/pay`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -186,9 +187,11 @@
                             tg.showAlert(`Оплата прошла! Баланс обновляется...`);
                         }
                     });
+                } else {
+                    tg.showAlert("Ошибка: Сервер не прислал ссылку на оплату");
                 }
             } catch (e) {
-                tg.showAlert("Сервер временно недоступен");
+                tg.showAlert("Сервер временно недоступен. Проверьте запуск бота на сервере.");
             }
         }
 
