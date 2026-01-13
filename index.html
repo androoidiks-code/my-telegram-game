@@ -99,7 +99,7 @@
         tg.expand();
 
         const API_URL = "http://85.198.96.191:8080";
-        const PROXY = "https://api.allorigins.win/get?url=";
+        const PROXY = "https://cors-anywhere.herokuapp.com/";
         let userId = tg.initDataUnsafe.user?.id || 12345;
         let balance = 0, flightTotal = 0, isPlaying = false, refCount = 0;
 
@@ -229,17 +229,19 @@
         }
 
         function openInvite() {
-            const link = `https://t.me/Luckyspin2026_bot?start=${userId}`;
-            tg.showPopup({ title: 'Друзья', message: `Твоя ссылка:\n${link}`, buttons: [{text: 'КОПИРОВАТЬ'}] });
-        }
+           const link = `https://t.me/Luckyspin2026_bot?start=${userId}`;
+    // Используем showAlert вместо showPopup для стабильности
+    tg.showAlert(`Твоя ссылка для приглашения:\n${link}\n\nСкопируй её и отправь другу!`);
+}
 
         function checkWithdraw() {
-            if(balance >= 1000 && refCount >= 5) {
-                tg.showAlert("Заявка на вывод принята! Ожидайте сообщения от бота.");
-            } else {
-                tg.showAlert(`Для вывода нужно 1000 ⭐ и 5 друзей.\nУ тебя: ${balance} ⭐ и ${refCount} друзей.`);
-            }
-        }
+           if (balance >= 1000 && refCount >= 5) {
+        tg.showAlert("✅ Заявка на вывод принята! Ожидайте сообщения от администратора.");
+    } else {
+        // Упрощаем вывод, чтобы не перегружать старые версии API
+        tg.showAlert(`Недостаточно условий:\nНужно: 1000 ⭐ и 5 друзей.\nУ тебя: ${balance} ⭐ и ${refCount} друзей.`);
+    }
+}
 
         // Облака
         function initScene() {
